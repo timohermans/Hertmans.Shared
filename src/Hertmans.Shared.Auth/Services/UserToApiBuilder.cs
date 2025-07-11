@@ -2,6 +2,9 @@ using Hertmans.Shared.Auth.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Kiota.Abstractions;
+using Microsoft.Kiota.Abstractions.Authentication;
+using Microsoft.Kiota.Http.HttpClientLibrary;
 
 namespace Hertmans.Shared.Auth.Services;
 
@@ -12,6 +15,8 @@ public static partial class UserToApiClientExtensions
         private readonly IServiceCollection _services;
         private readonly IApiClientOptions _options;
         private readonly string _authenticationScheme;
+
+        private bool IsKiotaBaseAdded = false;
 
         private UserToApiBuilder(IServiceCollection services, IApiClientOptions options,
             string authenticationScheme)
@@ -40,6 +45,7 @@ public static partial class UserToApiClientExtensions
         {
             _services.AddCircuitServicesAccessor();
             _services.AddCircuitTokenProvider();
+            
             return this;
         }
 
@@ -50,6 +56,20 @@ public static partial class UserToApiClientExtensions
         {
             _services.AddHttpClient<TInterface, T>(WithBaseAddress)
                 .AddHttpMessageHandler(WithApiBearerToken);
+            return this;
+        }
+
+        /// <inheritdoc />
+        public IUserToApiBuilder AddKiotaClient<T>() where T : class
+        {
+            if (!IsKiotaBaseAdded)
+            {
+                _services.AddHttpClient<IRequestAdapter, HttpClientRequestAdapter>(WithBaseAddress);
+                _services.AddScoped<IAuthenticationProvider, KiotaAuthProvider>();
+                IsKiotaBaseAdded = true;
+            }
+
+            _services.AddScoped<T>();
             return this;
         }
 
