@@ -2,6 +2,7 @@ using Hertmans.Shared.Auth.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Refit;
 
 namespace Hertmans.Shared.Auth.Services;
 
@@ -31,7 +32,7 @@ public static partial class UserToApiClientExtensions
 
             var settings = new T();
             config.GetSection(sectionName).Bind(settings, opts => opts.ErrorOnUnknownConfiguration = true);
-
+            
             return new UserToApiBuilder(services, settings, authenticationScheme);
         }
 
@@ -49,7 +50,8 @@ public static partial class UserToApiClientExtensions
             where T : class, TInterface
         {
             _services.AddHttpClient<TInterface, T>(WithBaseAddress)
-                .AddHttpMessageHandler(WithApiBearerToken);
+                .AddHttpMessageHandler(WithApiBearerToken)
+                .WithDefaultResilience<T>();
             return this;
         }
 
@@ -57,9 +59,21 @@ public static partial class UserToApiClientExtensions
         public IUserToApiBuilder AddHttpClient<T>() where T : class
         {
             _services.AddHttpClient<T>(WithBaseAddress)
-                .AddHttpMessageHandler(WithApiBearerToken);
+                .AddHttpMessageHandler(WithApiBearerToken)
+                .WithDefaultResilience<T>();
             return this;
         }
+        
+        public IUserToApiBuilder AddRefitClient<T>() where T : class
+        {
+            _services.AddRefitClient<T>()
+                .ConfigureHttpClient(WithBaseAddress)
+                .AddHttpMessageHandler(WithApiBearerToken)
+                .WithDefaultResilience<T>();
+
+            return this;
+        }
+        
 
         private void WithBaseAddress(HttpClient client) =>
             client.BaseAddress = new Uri(_options.BaseUrl);

@@ -28,5 +28,15 @@ public static partial class UserToApiClientExtensions
         /// <typeparam name="T">typeof HTTP client</typeparam>
         /// <returns>the builder to easily call AddHttpClient again</returns>
         IUserToApiBuilder AddHttpClient<T>() where T : class;
+
+        /// <summary>
+        /// Add a Refit Http Client to the service collection.
+        /// Adds access token handling as well.
+        /// Note that TokenProvider does not work with Refit somehow!
+        /// A simple IHttpContextAccessor works just fine somehow
+        /// </summary>
+        /// <typeparam name="T">typeof Refit client interface</typeparam>
+        /// <returns>The builder</returns>
+        IUserToApiBuilder AddRefitClient<T>() where T : class;
     }
 }
