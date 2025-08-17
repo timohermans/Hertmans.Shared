@@ -33,8 +33,6 @@ public static partial class UserToApiClientExtensions
             var settings = new T();
             config.GetSection(sectionName).Bind(settings, opts => opts.ErrorOnUnknownConfiguration = true);
             
-            settings.BaseUrl = settings.BaseUrl.Replace("localhost", "frontend.budget");
-            
             return new UserToApiBuilder(services, settings, authenticationScheme);
         }
 
