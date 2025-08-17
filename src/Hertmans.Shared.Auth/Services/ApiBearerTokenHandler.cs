@@ -36,7 +36,17 @@ namespace Hertmans.Shared.Auth.Services
 
             _logger.LogInformation("Access token successfully retrieved");
 
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var success = request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {accessToken}");
+
+            if (!success)
+            {
+                _logger.LogWarning("Failed to add Authorization header with Bearer token to request.");
+            }
+            else
+            {
+                _logger.LogInformation("Authorization header with Bearer token added to request.");
+            }
+            
             return await base.SendAsync(request, cancellationToken);
         }
     }
